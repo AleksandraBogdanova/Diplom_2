@@ -7,18 +7,15 @@ fake = Faker()
 
 
 def random_email() -> str:
-    """Генерирует уникальный email."""
     suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
     return f"test_{suffix}@yandex.ru"
 
 
 def random_password(length: int = 10) -> str:
-    """Генерирует случайный пароль."""
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
 def random_name() -> str:
-    """Генерирует случайное имя."""
     return fake.first_name()
 
 

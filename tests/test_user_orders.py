@@ -1,13 +1,16 @@
-import requests
+import allure
+from tests.api_client import OrdersApi
+from tests.messages import UNAUTHORIZED_MESSAGE
 
 
+@allure.feature("Заказы пользователя")
 class TestUserOrders:
+
+    @allure.title("Получение заказов авторизованным пользователем")
     def test_get_user_orders_authorized(self, base_url, auth_headers):
-        response = requests.get(
-            f"{base_url}/orders",
-            headers=auth_headers,
-            timeout=10,
-        )
+        orders_api = OrdersApi(base_url)
+        response = orders_api.get_user_orders(auth_headers)
+
         assert response.status_code == 200, response.text
 
         data = response.json()
@@ -16,10 +19,13 @@ class TestUserOrders:
         assert "total" in data
         assert "totalToday" in data
 
+    @allure.title("Получение заказов неавторизованным — 401")
     def test_get_user_orders_unauthorized_returns_401(self, base_url):
-        response = requests.get(f"{base_url}/orders", timeout=10)
+        orders_api = OrdersApi(base_url)
+        response = orders_api.get_user_orders()
+
         assert response.status_code == 401, response.text
 
         data = response.json()
         assert data["success"] is False
-        assert data["message"] == "You should be authorised"
+        assert data["message"] == UNAUTHORIZED_MESSAGE
