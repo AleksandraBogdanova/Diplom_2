@@ -1,12 +1,13 @@
 import allure
-from tests.api_client import OrdersApi
-from tests.messages import INGREDIENTS_REQUIRED_MESSAGE
+from api.orders_api import OrdersApi
+from data.messages import INGREDIENTS_REQUIRED_MESSAGE
 
 
 @allure.feature("Создание заказа")
 class TestOrderCreation:
 
-    @allure.title("Создание заказа авторизованным пользователем с ингредиентами")
+    @allure.title("Создание заказа авторизованным пользователем "
+                  "с ингредиентами")
     def test_create_order_authorized_with_ingredients(
         self, base_url, auth_headers, ingredients
     ):

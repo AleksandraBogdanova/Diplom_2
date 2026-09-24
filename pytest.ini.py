@@ -3,4 +3,4 @@ testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = -v -s --tb=short
+addopts = -v -s --alluredir=allure-results

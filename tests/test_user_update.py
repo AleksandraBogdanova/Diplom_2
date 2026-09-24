@@ -1,20 +1,43 @@
 import allure
-from tests.api_client import UserApi, AuthApi
-from tests.messages import UNAUTHORIZED_MESSAGE
-from helpers import random_email, random_password, random_name
+import pytest
+from api.auth_api import AuthApi
+from api.user_api import UserApi
+from data.messages import UNAUTHORIZED_MESSAGE
+from utils.generators import random_email, random_password, random_name
+
+
+@pytest.fixture
+def registered_user_for_update(base_url):
+    auth_api = AuthApi(base_url)
+    user_api = UserApi(base_url)
+
+    user_data = {
+        "email": random_email(),
+        "password": random_password(),
+        "name": random_name(),
+    }
+
+    response = auth_api.register(user_data)
+    token = response.json()["accessToken"]
+    headers = {"Authorization": token}
+
+    yield user_data, headers
+
+    user_api.delete_user(headers)
 
 
 @allure.feature("Изменение данных пользователя")
 class TestUserUpdate:
 
     @allure.title("Изменение email авторизованным пользователем")
-    def test_update_email_authorized(self, base_url, registered_user):
+    def test_update_email_authorized(
+        self, base_url, registered_user_for_update
+    ):
+        _, headers = registered_user_for_update
         new_email = random_email()
-        user_api = UserApi(base_url)
 
-        response = user_api.update_email(
-            new_email, registered_user["headers"]
-        )
+        user_api = UserApi(base_url)
+        response = user_api.update_email(new_email, headers)
 
         assert response.status_code == 200, response.text
 
@@ -23,13 +46,14 @@ class TestUserUpdate:
         assert data["user"]["email"] == new_email
 
     @allure.title("Изменение имени авторизованным пользователем")
-    def test_update_name_authorized(self, base_url, registered_user):
+    def test_update_name_authorized(
+        self, base_url, registered_user_for_update
+    ):
+        _, headers = registered_user_for_update
         new_name = random_name()
-        user_api = UserApi(base_url)
 
-        response = user_api.update_name(
-            new_name, registered_user["headers"]
-        )
+        user_api = UserApi(base_url)
+        response = user_api.update_name(new_name, headers)
 
         assert response.status_code == 200, response.text
 
@@ -38,13 +62,14 @@ class TestUserUpdate:
         assert data["user"]["name"] == new_name
 
     @allure.title("Изменение пароля авторизованным пользователем")
-    def test_update_password_authorized(self, base_url, registered_user):
+    def test_update_password_authorized(
+        self, base_url, registered_user_for_update
+    ):
+        user_data, headers = registered_user_for_update
         new_password = random_password()
-        user_api = UserApi(base_url)
 
-        response = user_api.update_password(
-            new_password, registered_user["headers"]
-        )
+        user_api = UserApi(base_url)
+        response = user_api.update_password(new_password, headers)
 
         assert response.status_code == 200, response.text
 
@@ -52,15 +77,12 @@ class TestUserUpdate:
         assert data["success"] is True
 
         auth_api = AuthApi(base_url)
-        login_response = auth_api.login(
-            registered_user["user_data"]["email"],
-            new_password,
-        )
+        login_response = auth_api.login(user_data["email"], new_password)
         assert login_response.status_code == 200, login_response.text
 
     @allure.title("Изменение email без авторизации — 401")
     def test_update_email_unauthorized_returns_401(
-        self, base_url, registered_user
+        self, base_url, registered_user_for_update
     ):
         user_api = UserApi(base_url)
         response = user_api.update_email(random_email())
@@ -73,7 +95,7 @@ class TestUserUpdate:
 
     @allure.title("Изменение имени без авторизации — 401")
     def test_update_name_unauthorized_returns_401(
-        self, base_url, registered_user
+        self, base_url, registered_user_for_update
     ):
         user_api = UserApi(base_url)
         response = user_api.update_name(random_name())
@@ -86,7 +108,7 @@ class TestUserUpdate:
 
     @allure.title("Изменение пароля без авторизации — 401")
     def test_update_password_unauthorized_returns_401(
-        self, base_url, registered_user
+        self, base_url, registered_user_for_update
     ):
         user_api = UserApi(base_url)
         response = user_api.update_password(random_password())

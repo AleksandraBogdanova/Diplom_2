@@ -1,6 +1,6 @@
 import allure
-from tests.api_client import OrdersApi
-from tests.messages import UNAUTHORIZED_MESSAGE
+from api.orders_api import OrdersApi
+from data.messages import UNAUTHORIZED_MESSAGE
 
 
 @allure.feature("Заказы пользователя")
