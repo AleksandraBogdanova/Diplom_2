@@ -1,0 +1,5 @@
+LOGIN = "/auth/login"
+REGISTER = "/auth/register"
+USER = "/auth/user"
+ORDERS = "/orders"
+INGREDIENTS = "/ingredients"
