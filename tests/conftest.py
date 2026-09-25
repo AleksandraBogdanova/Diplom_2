@@ -2,45 +2,85 @@ import pytest
 import allure
 from api.auth_api import AuthApi
 from api.ingredients_api import IngredientsApi
-from api.orders_api import OrdersApi
 from api.user_api import UserApi
 from config import BASE_URL, TEST_EMAIL, TEST_PASSWORD
+from utils.generators import random_email, random_password, random_name
 
 
 @pytest.fixture(scope="session")
-def base_url():
-    return BASE_URL
-
-
-@pytest.fixture(scope="session")
-def auth_headers(base_url):
-    auth_api = AuthApi(base_url)
+def auth_headers():
+    auth_api = AuthApi(BASE_URL)
     response = auth_api.login(TEST_EMAIL, TEST_PASSWORD)
     token = response.json()["accessToken"]
     return {"Authorization": token}
 
 
 @pytest.fixture(scope="session")
-def ingredients(base_url):
-    ingredients_api = IngredientsApi(base_url)
+def ingredients():
+    ingredients_api = IngredientsApi(BASE_URL)
     response = ingredients_api.get_all()
     data = response.json()["data"]
     return [data[0]["_id"], data[1]["_id"]]
 
 
 @pytest.fixture
-def auth_api(base_url):
-    return AuthApi(base_url)
+def registered_user_for_test():
+    auth_api = AuthApi(BASE_URL)
+    user_api = UserApi(BASE_URL)
+
+    user_data = {
+        "email": random_email(),
+        "password": random_password(),
+        "name": random_name(),
+    }
+
+    response = auth_api.register(user_data)
+    token = response.json()["accessToken"]
+    headers = {"Authorization": token}
+
+    yield user_data, headers
+
+    user_api.delete_user(headers)
 
 
 @pytest.fixture
-def user_api(base_url):
-    return UserApi(base_url)
+def registered_user_for_login():
+    auth_api = AuthApi(BASE_URL)
+    user_api = UserApi(BASE_URL)
+
+    user_data = {
+        "email": random_email(),
+        "password": random_password(),
+        "name": random_name(),
+    }
+
+    response = auth_api.register(user_data)
+    token = response.json()["accessToken"]
+    headers = {"Authorization": token}
+
+    yield user_data, headers
+
+    user_api.delete_user(headers)
 
 
 @pytest.fixture
-def orders_api(base_url):
-    return OrdersApi(base_url)
+def registered_user_for_update():
+    auth_api = AuthApi(BASE_URL)
+    user_api = UserApi(BASE_URL)
+
+    user_data = {
+        "email": random_email(),
+        "password": random_password(),
+        "name": random_name(),
+    }
+
+    response = auth_api.register(user_data)
+    token = response.json()["accessToken"]
+    headers = {"Authorization": token}
+
+    yield user_data, headers
+
+    user_api.delete_user(headers)
 
 
 @pytest.hookimpl(hookwrapper=True)
